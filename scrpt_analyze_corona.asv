@@ -7,7 +7,7 @@ what_to_plot = 'total_cases'; %   'total_deaths'   'total_cases'
 % get the list of countries
 list_cntrs_1st_wave = {'China', 'South Korea', 'Japan', 'Iran'};
 list_cntrs_2nd_wave = {'Italy', 'Spain', 'France'};
-list_cntrs_3rd_wave = {'United States', 'United Kingdom', 'Israel'};
+list_cntrs_3rd_wave = {'United Kingdom', 'Israel', 'United States', 'Australia'};
 list_cntrs_forgotten = {'Germany', 'Austria', 'Belgium', 'Netherlands', 'Denmark'};
 list_cntrs_east_europe = {'Poland', 'Belarus', 'Czech Republic', 'Romania'};
 list_list_countries_to_plot = {...
@@ -87,9 +87,11 @@ end
 
 
 function [data_country, dates] = filter_data_by_country(str_country, textdata, data)
+
 idxs = strcmp(textdata(:, 2), str_country);
 dates = textdata(idxs, 1);
 data_country = data(idxs, :);
+
 end
 
 
@@ -147,7 +149,7 @@ vec_legend = vec_legend(:);
 legend(vec_legend);
 ylabel(get_str_ylabel(what_to_plot));
 
-vec_xticks = (date_first: 3: date_last);
+vec_xticks = (date_first: date_last);
 vec_xtick_labels = datestr(vec_xticks, 'mmm-dd');
 xticks(vec_xticks);
 xticklabels(vec_xtick_labels);
@@ -210,5 +212,5 @@ end
 
 
 function vec_color = get_cell_color()
-vec_color = {'black', 'blue', 'red' 'cyan', 'magenta'};
+vec_color = {'black', 'blue', 'magenta', 'red', 'black', 'cyan', };
 end
