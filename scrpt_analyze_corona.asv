@@ -7,15 +7,17 @@ what_to_plot = 'total_cases'; %   'total_deaths'   'total_cases'
 % get the list of countries
 list_cntrs_1st_wave = {'China', 'South Korea', 'Japan', 'Iran'};
 list_cntrs_2nd_wave = {'Italy', 'Spain', 'France'};
-list_cntrs_3rd_wave = {'United Kingdom', 'Israel', 'United States', 'Australia'};
-list_cntrs_forgotten = {'Germany', 'Austria', 'Belgium', 'Netherlands', 'Denmark'};
+list_cntrs_3rd_wave = {'United States', 'United Kingdom', 'Israel'};
+list_cntrs_forgotten = {'Germany', 'Austria', 'Belgium', 'Netherlands', 'Denmark', 'Switzerland', 'Sweden', 'Norway'};
 list_cntrs_east_europe = {'Poland', 'Belarus', 'Czech Republic', 'Romania'};
+list_cntrs_arabic = {'Egypt', 'United Arab Emirates', 'Algeria', 'Morocco', 'Tunisia', 'Bahrain', 'Saudi Arabia'};
 list_list_countries_to_plot = {...
   list_cntrs_1st_wave, ...
   list_cntrs_2nd_wave, ...
   list_cntrs_3rd_wave, ...
   list_cntrs_forgotten, ...
-  list_cntrs_east_europe};
+  list_cntrs_east_europe, ...
+  list_cntrs_arabic};
 
 % load information from csv table
 [crn_txt, crn_data] = import_current_corona_status();
@@ -87,11 +89,9 @@ end
 
 
 function [data_country, dates] = filter_data_by_country(str_country, textdata, data)
-
 idxs = strcmp(textdata(:, 2), str_country);
 dates = textdata(idxs, 1);
 data_country = data(idxs, :);
-
 end
 
 
@@ -100,7 +100,7 @@ function plot_all(dates_all, data_cases, data_deaths, pop_all, ...
 
 n_vectors = length(dates_all);
 fig = figure('name', what_to_plot, ...
-  'Position', [50, 50, 700, 700]);
+  'Position', [50, 50, 1400, 700]);
 first_date_to_plot = 1e9 * ones(1, n_vectors);
 vec_color = get_cell_color();
 hold on;
@@ -146,10 +146,10 @@ for idx = 1: size(vec_legend, 2)
   vec_legend{2, idx} = [vec_legend{2, idx}, ' (deaths)'];
 end
 vec_legend = vec_legend(:);
-legend(vec_legend);
+legend(vec_legend, 'Location', 'northwest');
 ylabel(get_str_ylabel(what_to_plot));
 
-vec_xticks = (date_first: date_last);
+vec_xticks = (date_first: 3: date_last);
 vec_xtick_labels = datestr(vec_xticks, 'mmm-dd');
 xticks(vec_xticks);
 xticklabels(vec_xtick_labels);
@@ -201,7 +201,7 @@ end
 
 function str_ylabel = get_str_ylabel(what_to_plot)
 if strcmp(what_to_plot, 'total_cases')
-  str_ylabel = 'one confirmed case out of...';
+  str_ylabel = 'one (sick/dead) out of...';
 elseif strcmp(what_to_plot, 'total_deaths')
   str_ylabel = 'one death out of...';
 else
@@ -212,5 +212,5 @@ end
 
 
 function vec_color = get_cell_color()
-vec_color = {'black', 'blue', 'magenta', 'red', 'black', 'cyan', };
+vec_color = {[0,0,0], [1,0,0], [0,1,0], [0,0,1], [1,1,0], [1,0,1], [0,1,1], [1,0.5,0.5], [0.5,1};
 end
