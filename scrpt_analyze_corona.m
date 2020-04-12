@@ -2,15 +2,13 @@ function scrpt_analyze_corona
 
 close all;
 
-what_to_plot = 'total_cases'; %   'total_deaths'   'total_cases'
-
 % get the list of countries
 list_cntrs_1st_wave = {'China', 'South Korea', 'Japan', 'Iran'};
 list_cntrs_2nd_wave = {'Italy', 'Spain', 'France'};
 list_cntrs_3rd_wave = {'United States', 'United Kingdom', 'Israel'};
 list_cntrs_forgotten = {'Germany', 'Austria', 'Belgium', 'Netherlands', 'Denmark', 'Switzerland', 'Sweden', 'Norway'};
 list_cntrs_east_europe = {'Poland', 'Belarus', 'Czech Republic', 'Romania'};
-list_cntrs_arabic = {'Egypt', 'United Arab Emirates', 'Algeria', 'Morocco', 'Tunisia', 'Bahrain', 'Saudi Arabia'};
+list_cntrs_arabic = {'Egypt', 'Algeria', 'Morocco', 'Tunisia', 'Saudi Arabia'};
 list_list_countries_to_plot = {...
   list_cntrs_1st_wave, ...
   list_cntrs_2nd_wave, ...
@@ -31,7 +29,7 @@ for idx = 1: length(list_list_countries_to_plot)
   % plot a graph for a specific list of countries
   plot_graph_list_of_countries(...
     crn_txt, crn_data, pop_txt, pop_data, ...
-    list_countries_to_plot, what_to_plot);
+    list_countries_to_plot);
 end
 
 end
@@ -56,10 +54,7 @@ end
 
 function plot_graph_list_of_countries(...
   crn_txt, crn_data, pop_txt, pop_data, ...
-  list_countries_to_plot, what_to_plot)
-
-% determine which column to used, i.e., which data to plot
-idx_data_to_plot = str_to_idx_data_to_plot(what_to_plot);
+  list_countries_to_plot)
 
 % allocate variables
 n_countries = length(list_countries_to_plot);
@@ -82,8 +77,7 @@ for idx_country = 1: length(list_countries_to_plot)
 end
 
 % plot the data
-plot_all(dates_all, data_cases, data_deaths, pop_all, ...
-  list_countries_to_plot, what_to_plot);
+plot_all(dates_all, data_cases, data_deaths, pop_all, list_countries_to_plot);
 
 end
 
@@ -95,12 +89,10 @@ data_country = data(idxs, :);
 end
 
 
-function plot_all(dates_all, data_cases, data_deaths, pop_all, ...
-  list_countries_to_plot, what_to_plot)
+function plot_all(dates_all, data_cases, data_deaths, pop_all, list_countries_to_plot)
 
 n_vectors = length(dates_all);
-fig = figure('name', what_to_plot, ...
-  'Position', [50, 50, 1400, 700]);
+fig = figure('Position', [50, 50, 1800, 900]);
 first_date_to_plot = 1e9 * ones(1, n_vectors);
 vec_color = get_cell_color();
 hold on;
@@ -111,7 +103,7 @@ for idx = 1: n_vectors
   data_cases_norm = 10 * log10(data_cases_norm);
   data_deaths_norm = data_deaths{idx} / (1e3 * pop_all(idx));
   data_deaths_norm = 10 * log10(data_deaths_norm);
-  min_ratio_to_display = get_min_ratio_to_display(what_to_plot);
+  min_ratio_to_display = get_min_ratio_to_display();
   idx_tmp = find(data_cases_norm > min_ratio_to_display, 1);
   if ~isempty(idx_tmp), first_date_to_plot(idx) = dates(idx_tmp); end
   plot(dates, data_cases_norm, 'linewidth', 2, 'color', vec_color{idx});
@@ -120,7 +112,7 @@ end
 
 date_first = min(first_date_to_plot);
 date_last = dates(end);
-set_plot_parameters(list_countries_to_plot, date_first, date_last, what_to_plot);
+set_plot_parameters(list_countries_to_plot, date_first, date_last);
 
 filename_fig = cell2mat(list_countries_to_plot);
 filename_fig = strrep(filename_fig, ' ', '');
@@ -130,15 +122,17 @@ saveas(fig, filename_fig);
 end
 
 
-function set_plot_parameters(...
-  list_countries_to_plot, date_first, date_last, what_to_plot)
+function set_plot_parameters(list_countries_to_plot, date_first, date_last)
 
 % parameters
-vector_magnitude_db = get_vector_magnitude_db(what_to_plot);
-vector_magnitude = 10 .^ (-vector_magnitude_db ./ 10);
+vector_magnitude = get_vector_magnitude();
+vector_magnitude_ticklabels = 1e6 * vector_magnitude;
+vector_magnitude_db = 10 * log10(vector_magnitude);
+% vector_magnitude_db = get_vector_magnitude_db();
+% vector_magnitude = 1e6 * 10 .^ (vector_magnitude_db ./ 10);
 
 yticks(vector_magnitude_db);
-yticklabels(vector_magnitude);
+yticklabels(vector_magnitude_ticklabels);
 grid on;
 vec_legend = repmat(list_countries_to_plot, [2,1]);
 for idx = 1: size(vec_legend, 2)
@@ -147,10 +141,10 @@ for idx = 1: size(vec_legend, 2)
 end
 vec_legend = vec_legend(:);
 legend(vec_legend, 'Location', 'northwest');
-ylabel(get_str_ylabel(what_to_plot));
+ylabel(get_str_ylabel());
 
 vec_xticks = (date_first: 3: date_last);
-vec_xtick_labels = datestr(vec_xticks, 'mmm-dd');
+vec_xtick_labels = datestr(vec_xticks, 'mm-dd');
 xticks(vec_xticks);
 xticklabels(vec_xtick_labels);
 
@@ -169,48 +163,34 @@ list_dates = unique(textdata(2: end, 1));
 end
 
 
-function idx_data_to_plot = str_to_idx_data_to_plot(what_to_plot)
-if strcmp(what_to_plot, 'total_cases')
-  idx_data_to_plot = 3;
-elseif strcmp(what_to_plot, 'total_deaths')
-  idx_data_to_plot = 4;
-else
-  disp(['data to plot not found in table! what_to_plot = ',...
-    what_to_plot]);
+function vector_magnitude = get_vector_magnitude()
+vector_magnitude = [3e-7, 1e-6, 3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3, 3e-3];
 end
+
+function vec_mag_db = get_vector_magnitude_db()
+vec_mag_db = -65:5:-25;
 end
 
 
-function vec_mag_db = get_vector_magnitude_db(what_to_plot)
-if strcmp(what_to_plot, 'total_cases')
-  vec_mag_db = -65:5:-20;
-elseif strcmp(what_to_plot, 'total_deaths')
-  vec_mag_db = -65:5:-30;
-else
-  disp(['data to plot not found in table! what_to_plot = ',...
-    what_to_plot]);
-end
-end
-
-
-function min_ratio_to_display = get_min_ratio_to_display(what_to_plot)
-vector_magnitude_db = get_vector_magnitude_db(what_to_plot);
+function min_ratio_to_display = get_min_ratio_to_display()
+vector_magnitude_db = get_vector_magnitude_db();
 min_ratio_to_display = vector_magnitude_db(1);
 end
 
 
-function str_ylabel = get_str_ylabel(what_to_plot)
-if strcmp(what_to_plot, 'total_cases')
-  str_ylabel = 'one (sick/dead) out of...';
-elseif strcmp(what_to_plot, 'total_deaths')
-  str_ylabel = 'one death out of...';
-else
-  disp(['data to plot not found in table! what_to_plot = ',...
-    what_to_plot]);
-end
+function str_ylabel = get_str_ylabel()
+str_ylabel = 'number of [sick/dead] per million';
 end
 
 
 function vec_color = get_cell_color()
-vec_color = {[0,0,0], [0,0,1], [0,0.5,0.5], [0,0.5,0], [0,1,0], [0.5,1,0], [0.5,0.5,0], [0.5,0,0], [1,0,0]};
+vec_color = {...
+    [0,0,0], ...
+    [0,0,1], ...
+    [0,0.5,0], ...
+    [0,1,0], ...
+    [0.5,0.5,0], ...
+    [0.5,0,0], ...
+    [0.8,0,0], ...
+    [0.8,0,0.8]};
 end
