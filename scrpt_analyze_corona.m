@@ -112,7 +112,8 @@ end
 
 date_first = min(first_date_to_plot);
 date_last = dates(end);
-set_plot_parameters(list_countries_to_plot, date_first, date_last);
+set_plot_parameters(list_countries_to_plot, ...
+  [data_cases_norm, data_deaths_norm], date_first, date_last);
 
 filename_fig = cell2mat(list_countries_to_plot);
 filename_fig = strrep(filename_fig, ' ', '');
@@ -122,14 +123,13 @@ saveas(fig, filename_fig);
 end
 
 
-function set_plot_parameters(list_countries_to_plot, date_first, date_last)
+function set_plot_parameters(list_countries_to_plot, ...
+  data_all, date_first, date_last)
 
 % parameters
-vector_magnitude = get_vector_magnitude();
+vector_magnitude = get_vector_magnitude(data_all);
 vector_magnitude_ticklabels = 1e6 * vector_magnitude;
 vector_magnitude_db = 10 * log10(vector_magnitude);
-% vector_magnitude_db = get_vector_magnitude_db();
-% vector_magnitude = 1e6 * 10 .^ (vector_magnitude_db ./ 10);
 
 yticks(vector_magnitude_db);
 yticklabels(vector_magnitude_ticklabels);
@@ -163,8 +163,16 @@ list_dates = unique(textdata(2: end, 1));
 end
 
 
-function vector_magnitude = get_vector_magnitude()
-vector_magnitude = [3e-7, 1e-6, 3e-6, 1e-5, 3e-5, 1e-4, 3e-4, 1e-3, 3e-3];
+function vector_magnitude = get_vector_magnitude(data_db)
+data = 10.^(data_db / 10);
+vec_tmp = 10.^(-9: 1);
+vec_tmp = [1; 3] * vec_tmp;
+vec_tmp = vec_tmp(:);
+min_val = max(1e-7, min(data(:)));
+max_val = max(data(:));
+idx_min = min(find(vec_tmp >= min_val));
+idx_max = max(find(vec_tmp <= max_val));
+vector_magnitude = vec_tmp(idx_min: idx_max+1);
 end
 
 function vec_mag_db = get_vector_magnitude_db()
